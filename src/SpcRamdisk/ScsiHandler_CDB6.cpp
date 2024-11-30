@@ -135,10 +135,10 @@ static UCHAR Reply_VpdBlockLimits(PSPC_SRBEXT srbext, ULONG& ret_size)
     page->PageCode = VPD_BLOCK_LIMITS;
     REVERSE_BYTES_2(page->PageLength, &buf_size);
 
-    ULONG max_tx = MAX_TX_SIZE;
-    //tell I/O system: max tx size and optimal tx size of this adapter.
-    REVERSE_BYTES_4(page->MaximumTransferLength, &max_tx);
-    REVERSE_BYTES_4(page->OptimalTransferLength, &max_tx);
+    ULONG max_tx_blocks = MAX_TX_SIZE / devext->BlockSizeInBytes;   //size in LBA blocks
+    //tell I/O system: max tx blocks and optimal tx blocks of this adapter.
+    REVERSE_BYTES_4(page->MaximumTransferLength, &max_tx_blocks);
+    REVERSE_BYTES_4(page->OptimalTransferLength, &max_tx_blocks);
 
     //Refer to SCSI SBC3 doc or SCSI reference Block Limits VPD page.
     //http://www.13thmonkey.org/documentation/SCSI/sbc3r25.pdf
