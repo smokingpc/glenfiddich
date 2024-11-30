@@ -53,7 +53,7 @@ UCHAR Scsi_ReadCapacity16(PSPC_SRBEXT srbext)
         srb_status = SRB_STATUS_DATA_OVERRUN;
     }
 
-    UpdateDataBufLen(srbext, ret_size);
+    srbext->SetSrbDataTxLen(ret_size);
     return srb_status;
 }
 

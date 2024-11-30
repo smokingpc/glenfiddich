@@ -53,7 +53,6 @@ static void ParseStorportAddr(_In_ PSPC_SRBEXT srbext)
         srbext->RaidPort = INVALID_RAIDPORT;
     }
 }
-
 static void UpdateScsiStateToSrb(
     _In_ PSPC_SRBEXT srbext,
     _Inout_ UCHAR &srb_status)
@@ -94,7 +93,6 @@ static void UpdateScsiStateToSrb(
         break;
     }
 }
-
 static void ParseScsiReadWriteLBA(_In_ PSPC_SRBEXT srbext)
 {
     PCDB cdb = srbext->Cdb;
@@ -148,7 +146,6 @@ static void ParseScsiReadWriteLBA(_In_ PSPC_SRBEXT srbext)
     srbext->RwOffsetBytes = srbext->RwOffset * srbext->DevExt->BlockSizeInBytes;
     srbext->RwLengthBytes = srbext->RwLength * srbext->DevExt->BlockSizeInBytes;
 }
-
 static void ParseScsiInfoFromSrb(_In_ PSPC_SRBEXT srbext)
 {
     PSCSI_REQUEST_BLOCK srb = srbext->Srb;
@@ -162,53 +159,51 @@ static void ParseScsiInfoFromSrb(_In_ PSPC_SRBEXT srbext)
     ParseScsiReadWriteLBA(srbext);
 }
 
-static void InitSrbext(
-    _In_ PSPC_SRBEXT srbext,
+void _SPC_SRBEXT::Init(
     _In_ PSCSI_REQUEST_BLOCK srb,
     _In_ PVOID devext)
 {
-    RtlZeroMemory(srbext, sizeof(SPC_SRBEXT));
-    srbext->Srb = srb;
-    srbext->DevExt = (PSPC_DEVEXT)devext;
-    srbext->Protect = OVERRUN_TAG;
-    srbext->Bus = INVALID_BUS_ID;
-    srbext->Target = INVALID_TARGET_ID;
-    srbext->Lun = INVALID_LUN_ID;
-    srbext->RaidPort = INVALID_RAIDPORT;
-    srbext->ScsiTag = INVALID_SCSI_TAG;
-    if (nullptr != srbext->Srb)
+    RtlZeroMemory(this, sizeof(SPC_SRBEXT));
+    this->Protect = OVERRUN_TAG;
+    this->Srb = srb;
+    this->DevExt = (PSPC_DEVEXT)devext;
+    this->Bus = INVALID_BUS_ID;
+    this->Target = INVALID_TARGET_ID;
+    this->Lun = INVALID_LUN_ID;
+    this->RaidPort = INVALID_RAIDPORT;
+    this->ScsiTag = INVALID_SCSI_TAG;
+    if (nullptr != this->Srb)
     {
-        ParseScsiInfoFromSrb(srbext);
-        ParseStorportAddr(srbext);
+        ParseScsiInfoFromSrb(this);
+        ParseStorportAddr(this);
     }
 }
-
-void CompleteSrb(_In_ PSPC_SRBEXT srbext, _In_ UCHAR srb_status)
+void _SPC_SRBEXT::CompleteSrb(_In_ UCHAR srb_status)
 {
-    if (nullptr != srbext->Srb)
+    if (nullptr != this->Srb)
     {
-        UpdateScsiStateToSrb(srbext, srb_status);
-        SrbSetSrbStatus(srbext->Srb, srb_status);
-        StorPortNotification(RequestComplete, srbext->DevExt, srbext->Srb);
+        UpdateScsiStateToSrb(this, srb_status);
+        SrbSetSrbStatus(this->Srb, srb_status);
+        StorPortNotification(RequestComplete, this->DevExt, this->Srb);
     }
 }
-void UpdateDataBufLen(_In_ PSPC_SRBEXT srbext, _In_ ULONG len)
+void _SPC_SRBEXT::SetSrbDataTxLen(_In_ ULONG len)
 {
-    if (nullptr != srbext->Srb)
-        SrbSetDataTransferLength(srbext->Srb, len);
-    srbext->DataBufLen = len;
+    if (nullptr != this->Srb)
+        SrbSetDataTransferLength(this->Srb, len);
+    this->DataBufLen = len;
 }
-bool GetSrbPnpRequest(
-    _In_ PSPC_SRBEXT srbext, 
+bool _SPC_SRBEXT::GetSrbPnpRequest(
     _Inout_ ULONG& flags, 
     _Inout_ STOR_PNP_ACTION& action)
 {
-    if(nullptr == srbext->Srb)
+    if(nullptr == this->Srb)
         return false;
 
-//SrbGetSrbExDataByType() return NULL if srb is SCSI_REQUEST_BLOCK
+//SrbGetSrbExDataByType() return NULL if srb is SCSI_REQUEST_BLOCK.
+//PSRBEX_DATA_PNP is only used for STORAGE_REQUEST_BLOCK.
     PSRBEX_DATA_PNP pnp = (PSRBEX_DATA_PNP)SrbGetSrbExDataByType(
-        (PSTORAGE_REQUEST_BLOCK)srbext->Srb, SrbExDataTypePnP);
+        (PSTORAGE_REQUEST_BLOCK)this->Srb, SrbExDataTypePnP);
 
     if (pnp != nullptr) {
         flags = pnp->SrbPnPFlags;
@@ -216,7 +211,7 @@ bool GetSrbPnpRequest(
     }
     else {
         PSCSI_PNP_REQUEST_BLOCK scsi_pnp = 
-            (PSCSI_PNP_REQUEST_BLOCK)srbext->Srb;
+            (PSCSI_PNP_REQUEST_BLOCK)this->Srb;
         flags = scsi_pnp->SrbPnPFlags;
         action = scsi_pnp->PnPAction;
     }
@@ -226,6 +221,6 @@ bool GetSrbPnpRequest(
 PSPC_SRBEXT GetSrbExt(_In_ PSCSI_REQUEST_BLOCK srb, _In_ PVOID devext)
 {
     PSPC_SRBEXT srbext = (PSPC_SRBEXT)SrbGetMiniportContext(srb);
-    InitSrbext(srbext, srb, devext);
+    srbext->Init(srb, devext);
     return srbext;
 }

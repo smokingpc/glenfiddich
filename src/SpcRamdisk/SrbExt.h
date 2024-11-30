@@ -34,7 +34,7 @@
 // Enjoy it.
 // ================================================================
 
-//SRB Extension for Ramdisk, this is "per STORPORT REQUEST" context
+//SRB Extension for Ramdisk, this is "per STORPORT REQUEST" context.
 typedef struct _SPC_SRBEXT
 {
     SLIST_ENTRY List;
@@ -60,17 +60,13 @@ typedef struct _SPC_SRBEXT
     ULONG DataBufLen;
     BOOLEAN IsScsiWrite;
     ULONG Protect;
+
+    void Init(_In_ PSCSI_REQUEST_BLOCK srb, _In_ PVOID devext);
+    void CompleteSrb(_In_ UCHAR srb_status);
+    void SetSrbDataTxLen(_In_ ULONG len);
+    bool GetSrbPnpRequest(
+        _Inout_ ULONG& flags,
+        _Inout_ STOR_PNP_ACTION& action);
 }SPC_SRBEXT, * PSPC_SRBEXT;
 
 PSPC_SRBEXT GetSrbExt(_In_ PSCSI_REQUEST_BLOCK srb, _In_ PVOID devext);
-void CompleteSrb(_In_ PSPC_SRBEXT srbext, _In_ UCHAR srb_status);
-
-//If the request need reply data or required buffer length,
-//storport driver should update DataBuffer Length by SrbSetDataTransferLength().
-//Storport will copy back data by this length, like BUFERRED_IO of IOCTL.
-void UpdateDataBufLen(_In_ PSPC_SRBEXT srbext, _In_ ULONG len);
-
-bool GetSrbPnpRequest(
-    _In_ PSPC_SRBEXT srbext, 
-    _Inout_ ULONG& flags, 
-    _Inout_ STOR_PNP_ACTION& action);

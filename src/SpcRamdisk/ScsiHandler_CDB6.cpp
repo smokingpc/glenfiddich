@@ -233,6 +233,22 @@ static void Fill_InquiryData(PINQUIRYDATA data, char* vid, char* pid, char* rev)
     RtlCopyMemory((PUCHAR)&data->ProductId[0], pid, strlen(pid));
     RtlCopyMemory((PUCHAR)&data->ProductRevisionLevel[0], rev, strlen(rev));
 }
+
+static UCHAR Reply_NonVpdInquiry(PSPC_SRBEXT srbext, ULONG& ret_size)
+{
+    PINQUIRYDATA data = (PINQUIRYDATA)srbext->DataBuf;
+    UCHAR srb_status = SRB_STATUS_DATA_OVERRUN;
+    ULONG size = srbext->DataBufLen;
+    ret_size = INQUIRYDATABUFFERSIZE;
+    if (size >= INQUIRYDATABUFFERSIZE)
+    {
+        RtlZeroMemory(srbext->DataBuf, srbext->DataBufLen);
+        Fill_InquiryData(data, (char*)VENDOR_ID, (char*)PRODUCT_ID, REV_ID);
+        srb_status = SRB_STATUS_SUCCESS;
+    }
+    return srb_status;
+}
+
 #pragma endregion
 
 UCHAR Scsi_RequestSense6(PSPC_SRBEXT srbext)
@@ -279,7 +295,7 @@ UCHAR Scsi_RequestSense6(PSPC_SRBEXT srbext)
         copy_size = alloc_size;
 
     StorPortCopyMemory(srbext->DataBuf, &data, copy_size);
-    UpdateDataBufLen(srbext, copy_size);
+    srbext->SetSrbDataTxLen(copy_size);
     return srb_status;
 }
 UCHAR Scsi_Read6(PSPC_SRBEXT srbext)
@@ -308,21 +324,11 @@ UCHAR Scsi_Inquiry6(PSPC_SRBEXT srbext)
         }
         else
         {
-            PINQUIRYDATA data = (PINQUIRYDATA)srbext->DataBuf;
-            ULONG size = srbext->DataBufLen;
-            ret_size = INQUIRYDATABUFFERSIZE;
-            srb_status = SRB_STATUS_DATA_OVERRUN;
-            if(size >= INQUIRYDATABUFFERSIZE)
-            {
-                RtlZeroMemory(srbext->DataBuf, srbext->DataBufLen);
-                Fill_InquiryData(data, (char*)VENDOR_ID, 
-                                (char*)PRODUCT_ID, REV_ID);
-                srb_status = SRB_STATUS_SUCCESS;
-            }
+            srb_status = Reply_NonVpdInquiry(srbext, ret_size);
         }
     }
     
-    UpdateDataBufLen(srbext, ret_size);
+    srbext->SetSrbDataTxLen(ret_size);
     return srb_status;
 }
 UCHAR Scsi_Verify6(PSPC_SRBEXT srbext)
@@ -334,14 +340,66 @@ UCHAR Scsi_Verify6(PSPC_SRBEXT srbext)
 }
 UCHAR Scsi_ModeSelect6(PSPC_SRBEXT srbext)
 {
-    UCHAR srb_status = SRB_STATUS_INVALID_REQUEST;
-    UNREFERENCED_PARAMETER(srbext);
-    return srb_status;
+//In DeviceManager GUI, Property Page of each disk can select write-cache policy.
+//It is implemented by ModeSelect6 cmd.
+    if (srbext->DataBufLen < sizeof(MODE_PARAMETER_HEADER)
+        || srbext->DataBuf == nullptr)
+    {
+        //ScsiHandler should set DataTxLength to tell upper : 
+        //    I returned data with length xxx.
+        //some command will fail if not set this data transfer length.
+        srbext->SetSrbDataTxLen(sizeof(MODE_PARAMETER_HEADER));
+        return SRB_STATUS_ERROR;
+    }
+
+    CDB::_MODE_SELECT* select = &srbext->Cdb->MODE_SELECT;
+    PMODE_PARAMETER_HEADER header = (PMODE_PARAMETER_HEADER)srbext->DataBuf;
+    PMODE_PARAMETER_BLOCK param_block = (PMODE_PARAMETER_BLOCK)(header + 1);
+    PUCHAR cursor = ((PUCHAR)param_block + header->BlockDescriptorLength);
+    ULONG mode_data_size = 0;
+    ULONG offset = 0;
+
+    //currently don't support VendorSpecific MODE_SELECT op.
+    if (0 == select->PFBit)
+        return SRB_STATUS_INVALID_REQUEST;
+
+    //if BlockDescriptorLength is zero, data following param_block are
+    //all mode_pages to set into SCSI. e.g. MODE_CACHE_PAGE...etc...
+    if (0 == header->BlockDescriptorLength)
+        param_block = nullptr;
+
+    //windows set header->ModeDataLength to 0. No idea if it is bug or lazy....
+    mode_data_size = srbext->DataBufLen -
+        sizeof(MODE_PARAMETER_HEADER) -
+        header->BlockDescriptorLength;
+
+    while (mode_data_size > 0)
+    {
+        PMODE_CACHING_PAGE page = (PMODE_CACHING_PAGE)(cursor + offset);
+        mode_data_size -= (page->PageLength + 2);
+        offset += (page->PageLength + 2);
+
+        if (0 == page->PageLength)
+            break;
+
+        //Only handle MODE_PAGE_CACHING now. all other pages not supported.
+        //todo: support all MODE_PAGE_*
+        if (page->PageCode != MODE_PAGE_CACHING || 
+                page->PageLength != (sizeof(MODE_CACHING_PAGE) - 2))
+            continue;
+
+        //ReadCache is not supported now.
+        //Here is just a fake update. it is useless.
+        srbext->DevExt->ReadCacheEnabled = !page->ReadDisableCache;
+        srbext->DevExt->WriteCacheEnabled = page->WriteCacheEnable;
+        break;
+    }
+
+    return SRB_STATUS_SUCCESS;
 }
 UCHAR Scsi_ModeSense6(PSPC_SRBEXT srbext)
 {
     UCHAR srb_status = SRB_STATUS_ERROR;
-    PCDB cdb = srbext->Cdb;
     PUCHAR buffer = (PUCHAR) srbext->DataBuf;
     PMODE_PARAMETER_HEADER header = (PMODE_PARAMETER_HEADER)buffer;
     ULONG buf_size = srbext->DataBufLen;
@@ -364,18 +422,18 @@ UCHAR Scsi_ModeSense6(PSPC_SRBEXT srbext)
     ret_size += sizeof(MODE_PARAMETER_HEADER);
 
     // Todo: reply real mode sense data
-    switch (cdb->MODE_SENSE.PageCode)
+    switch (srbext->Cdb->MODE_SENSE.PageCode)
     {
         case MODE_PAGE_CACHING:
         {
-            ReplyModePageCaching(buffer, buf_size, page_size, ret_size);
+            ReplyModePageCaching(srbext->DevExt, buffer, buf_size, page_size, ret_size);
             header->ModeDataLength += (UCHAR)page_size;
             srb_status = SRB_STATUS_SUCCESS;
             break;
         }
         case MODE_PAGE_CONTROL:
         {
-            ReplyModePageControl(buffer, buf_size, page_size, ret_size);
+            ReplyModePageControl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
             header->ModeDataLength += (UCHAR)page_size;
             srb_status = SRB_STATUS_SUCCESS;
             break;
@@ -385,7 +443,7 @@ UCHAR Scsi_ModeSense6(PSPC_SRBEXT srbext)
             //in HLK, it required "Information Exception Control Page".
             //But it is renamed to MODE_PAGE_FAULT_REPORTING in Windows Storport ....
             //refet to https://www.t10.org/ftp/t10/document.94/94-190r3.pdf
-            ReplyModePageInfoExceptionCtrl(buffer, buf_size, page_size, ret_size);
+            ReplyModePageInfoExceptionCtrl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
             header->ModeDataLength += (UCHAR)page_size;
             srb_status = SRB_STATUS_SUCCESS;
             break;
@@ -394,17 +452,17 @@ UCHAR Scsi_ModeSense6(PSPC_SRBEXT srbext)
         {
             if(buf_size > 0)
             {
-                ReplyModePageCaching(buffer, buf_size, page_size, ret_size);
+                ReplyModePageCaching(srbext->DevExt, buffer, buf_size, page_size, ret_size);
                 header->ModeDataLength += (UCHAR)page_size;
             }
             if (buf_size > 0)
             {
-                ReplyModePageControl(buffer, buf_size, page_size, ret_size);
+                ReplyModePageControl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
                 header->ModeDataLength += (UCHAR)page_size;
             }
             if (buf_size > 0)
             {
-                ReplyModePageInfoExceptionCtrl(buffer, buf_size, page_size, ret_size);
+                ReplyModePageInfoExceptionCtrl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
                 header->ModeDataLength += (UCHAR)page_size;
             }
 
@@ -419,6 +477,6 @@ UCHAR Scsi_ModeSense6(PSPC_SRBEXT srbext)
     }
 
 end:
-    UpdateDataBufLen(srbext, ret_size);
+    srbext->SetSrbDataTxLen(ret_size);
     return srb_status;
 }

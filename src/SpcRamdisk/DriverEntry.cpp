@@ -1,6 +1,6 @@
 #include "precompile.h"
 
-#define TARGET_MAJOR_VER        8
+#define TARGET_MAJOR_VER        6
 BOOLEAN IsSupportedOS()
 {
     OSVERSIONINFOW info = { 0 };

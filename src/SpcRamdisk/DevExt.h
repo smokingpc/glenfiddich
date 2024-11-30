@@ -56,20 +56,18 @@ typedef struct _SPC_DEVEXT {
     size_t SnStrLen;
     UCHAR NQN[NQN_BUF_SIZE];
     size_t NqnStrLen;
-    PUCHAR Disk;
+    PUCHAR Disk;                    //Memory of RamDisk.
 
     UINT64 TotalDiskBytes;
     ULONG BlockSizeInBytes;         //Size of LBA block, in bytes.
     ULONG_PTR TotalBlocks;
-    INT64 MaxLBA;
+    
+    //Max LBA index of this disk. 
+    //e.g. when TotalBlocks==10, MaxLBA will be 9 because LBA is zero-based index.
+    INT64 MaxLBA;                   
+    BOOLEAN ReadCacheEnabled;
+    BOOLEAN WriteCacheEnabled;
 
-#if 0
-    SLIST_HEADER RequestHead;
-    WORKER_THREAD_CTX WorkerCtx[4];
-    KEVENT EventRequestArrived;//StopThread;
-    bool FlagStopThread;
-    LARGE_INTEGER ThreadInterval;
-#endif
     void Setup();
     void Teardown();
 
@@ -88,7 +86,7 @@ typedef struct _SPC_DEVEXT {
     void StartWorkerThread();
     void StopWorkerThread();
 #endif
-    void SetSize(size_t total_size, ULONG size_of_block);
+    void SetDiskSize(size_t total_size, ULONG size_of_block);
     void LoadRegistry();
     void LoadDefault();
 }SPC_DEVEXT, * PSPC_DEVEXT;

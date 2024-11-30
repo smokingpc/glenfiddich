@@ -172,7 +172,7 @@ void _SPC_DEVEXT::StopWorkerThread()
 }
 #endif
 
-void _SPC_DEVEXT::SetSize(size_t total_bytes, ULONG bytes_of_block)
+void _SPC_DEVEXT::SetDiskSize(size_t total_bytes, ULONG bytes_of_block)
 {
     //todo: check "is bytes_of_block == 512 or 4096?"
     BlockSizeInBytes = bytes_of_block;
@@ -183,7 +183,8 @@ void _SPC_DEVEXT::SetSize(size_t total_bytes, ULONG bytes_of_block)
 }
 void _SPC_DEVEXT::LoadDefault()
 {
-    SetSize(DEFAULT_DISK_BYTES, DEFAULT_BLOCK_SIZE);
+    SetDiskSize(DEFAULT_DISK_BYTES, DEFAULT_BLOCK_SIZE);
+    ReadCacheEnabled = WriteCacheEnabled = FALSE;
 }
 void _SPC_DEVEXT::LoadRegistry()
 {
@@ -221,6 +222,6 @@ void _SPC_DEVEXT::LoadRegistry()
     if (block_size != DEFAULT_BLOCK_SIZE && block_size != DEFAULT_BLOCK_SIZE2)
         block_size = DEFAULT_BLOCK_SIZE;
 
-    SetSize(size, block_size);
+    SetDiskSize(size, block_size);
     StorPortFreeRegistryBuffer(this, buffer);
 }

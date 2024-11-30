@@ -161,7 +161,7 @@ BOOLEAN HwStartIo(
     }
 
     if(SRB_STATUS_PENDING != srb_status)
-        CompleteSrb(srbext, srb_status);
+        srbext->CompleteSrb(srb_status);
     return TRUE;
 }
 

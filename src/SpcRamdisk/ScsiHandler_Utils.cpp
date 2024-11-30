@@ -30,7 +30,6 @@ void FillModePage_Caching(PMODE_CACHING_PAGE page)
 {
     page->PageCode = MODE_PAGE_CACHING;
     page->PageLength = (UCHAR)(sizeof(MODE_CACHING_PAGE) - 2); //sizeof(MODE_CACHING_PAGE) - sizeof(page->PageCode) - sizeof(page->PageLength)
-    page->ReadDisableCache = 1;
 }
 void FillModePage_InfoException(PMODE_INFO_EXCEPTIONS page)
 {
@@ -45,59 +44,47 @@ void FillModePage_Control(PMODE_CONTROL_PAGE page)
     page->PageLength = (UCHAR)(sizeof(MODE_CONTROL_PAGE) - 2); //sizeof(MODE_CONTROL_PAGE) - sizeof(page->PageCode) - sizeof(page->PageLength)
     page->QueueAlgorithmModifier = 0;
 }
-void ReplyModePageCaching(PUCHAR& buffer, ULONG& buf_size, ULONG& mode_page_size, ULONG& ret_size)
+void ReplyModePageCaching(
+    PSPC_DEVEXT devext,
+    PUCHAR& buffer, 
+    ULONG& buf_size, 
+    ULONG& mode_page_size, 
+    ULONG& ret_size)
 {
     MODE_CACHING_PAGE page = { 0 };
     mode_page_size = sizeof(MODE_CACHING_PAGE);
     FillModePage_Caching(&page);
+    page.ReadDisableCache = !devext->ReadCacheEnabled;
+    page.WriteCacheEnable = devext->WriteCacheEnabled;
     CopyToCdbBuffer(buffer, buf_size, &page, mode_page_size, ret_size);
 }
-void ReplyModePageControl(PUCHAR& buffer, ULONG& buf_size, ULONG& mode_page_size, ULONG& ret_size)
+void ReplyModePageControl(
+    PSPC_DEVEXT devext,
+    PUCHAR& buffer, 
+    ULONG& buf_size, 
+    ULONG& mode_page_size, 
+    ULONG& ret_size)
 {
     MODE_CONTROL_PAGE page = { 0 };
+    UNREFERENCED_PARAMETER(devext);
     mode_page_size = sizeof(MODE_CONTROL_PAGE);
     FillModePage_Control(&page);
     CopyToCdbBuffer(buffer, buf_size, &page, mode_page_size, ret_size);
 }
-void ReplyModePageInfoExceptionCtrl(PUCHAR& buffer, ULONG& buf_size, ULONG& mode_page_size, ULONG& ret_size)
+void ReplyModePageInfoExceptionCtrl(
+    PSPC_DEVEXT devext,
+    PUCHAR& buffer, 
+    ULONG& buf_size, 
+    ULONG& mode_page_size, 
+    ULONG& ret_size)
 {
     MODE_INFO_EXCEPTIONS page = { 0 };
+    UNREFERENCED_PARAMETER(devext);
     mode_page_size = sizeof(MODE_INFO_EXCEPTIONS);
     FillModePage_InfoException(&page);
     CopyToCdbBuffer(buffer, buf_size, &page, mode_page_size, ret_size);
 }
-//void ParseLbaBlockAndOffset(OUT ULONG64& start_block, OUT ULONG& length, PCDB cdb)
-//{
-//    length = 0;
-//    start_block = 0;
-//    switch (cdb->AsByte[0])
-//    {
-//    case SCSIOP_READ6:
-//    case SCSIOP_WRITE6:
-//    {
-//        start_block = ((ULONG64)cdb->CDB6READWRITE.LogicalBlockMsb1 << 16) |
-//            ((ULONG64)cdb->CDB6READWRITE.LogicalBlockMsb0 << 8) |
-//            ((ULONG64)cdb->CDB6READWRITE.LogicalBlockLsb);
-//        length = cdb->CDB6READWRITE.TransferBlocks ? cdb->CDB6READWRITE.TransferBlocks : 256;
-//    }
-//    break;
-//    case SCSIOP_READ:
-//    case SCSIOP_WRITE:
-//        REVERSE_BYTES_4(&start_block, &cdb->CDB10.LogicalBlockByte0);
-//        REVERSE_BYTES_2(&length, &cdb->CDB10.TransferBlocksMsb);
-//        break;
-//    case SCSIOP_READ12:
-//    case SCSIOP_WRITE12:
-//        REVERSE_BYTES_4(&start_block, cdb->CDB12.LogicalBlock);
-//        REVERSE_BYTES_4(&length, cdb->CDB12.TransferLength);
-//        break;
-//    case SCSIOP_READ16:
-//    case SCSIOP_WRITE16:
-//        REVERSE_BYTES_8(&start_block, cdb->CDB16.LogicalBlock);
-//        REVERSE_BYTES_4(&length, cdb->CDB16.TransferLength);
-//        break;
-//    }
-//}
+
 UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext, BOOLEAN is_write)
 {
     PSPC_DEVEXT devext = srbext->DevExt;
@@ -112,6 +99,7 @@ UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext, BOOLEAN is_write)
     {
         //status = devext->WriteLBA(srbext->RwOffset, srbext->RwLength, srbext->DataBuf);
         status = devext->Write(srbext->RwOffsetBytes, srbext->RwLengthBytes, srbext->DataBuf);
+        //keep
     }
 
     if (!NT_SUCCESS(status))

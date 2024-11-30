@@ -30,12 +30,18 @@ static UCHAR HandleQueryCapability(PSPC_SRBEXT srbext)
         return SRB_STATUS_INVALID_REQUEST;
 
     if (data_len >= sizeof(STOR_DEVICE_CAPABILITIES_EX))
+    {
         ReplyQueryCapability(srbext, (PSTOR_DEVICE_CAPABILITIES_EX)data_buf);
+        srbext->SetSrbDataTxLen(sizeof(STOR_DEVICE_CAPABILITIES_EX));
+    }
     else if (data_len >= sizeof(STOR_DEVICE_CAPABILITIES))
+    {
         ReplyQueryCapability(srbext, (PSTOR_DEVICE_CAPABILITIES)data_buf);
+        srbext->SetSrbDataTxLen(sizeof(PSTOR_DEVICE_CAPABILITIES));
+    }
     else
     {
-        UpdateDataBufLen(srbext, sizeof(STOR_DEVICE_CAPABILITIES_EX));
+        srbext->SetSrbDataTxLen(sizeof(STOR_DEVICE_CAPABILITIES_EX));
         return SRB_STATUS_DATA_OVERRUN;
     }
 
@@ -47,6 +53,8 @@ static UCHAR HandleDeviceRemove(PSPC_SRBEXT srbext)
     //todo: remove disk, no accept request anymore
     return SRB_STATUS_SUCCESS;
 }
+static __inline BOOLEAN IsAdapterRequest(ULONG pnp_flag)
+{   return (0 != (pnp_flag & SRB_PNP_FLAGS_ADAPTER_REQUEST));    }
 
 UCHAR StartIo_HandlePnpCmd(PSPC_SRBEXT srbext)
 {
@@ -55,7 +63,7 @@ UCHAR StartIo_HandlePnpCmd(PSPC_SRBEXT srbext)
 
     ULONG flag = 0;
     STOR_PNP_ACTION action;
-    GetSrbPnpRequest(srbext, flag, action);
+    srbext->GetSrbPnpRequest(flag, action);
 
     switch (action)
     {
@@ -66,10 +74,10 @@ UCHAR StartIo_HandlePnpCmd(PSPC_SRBEXT srbext)
             srb_status = SRB_STATUS_INVALID_REQUEST;
         break;
     case StorRemoveDevice:
-    case StorSurpriseRemoval:
-        if ((flag & SRB_PNP_FLAGS_ADAPTER_REQUEST) != 0)
+    case StorSurpriseRemoval:       //virtual miniport has no SurpriseRemove event.
+        if (IsAdapterRequest(flag))
             srb_status = HandleDeviceRemove(srbext);
-        else
+        else //if 0 ==(flag & SRB_PNP_FLAGS_ADAPTER_REQUEST), it is RemoveUnit event.
             srb_status = SRB_STATUS_INVALID_REQUEST;
         break;
     default:

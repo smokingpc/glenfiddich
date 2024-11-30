@@ -39,7 +39,7 @@ UCHAR Scsi_ReadCapacity10(PSPC_SRBEXT srbext)
         srb_status = SRB_STATUS_DATA_OVERRUN;
         ret_size = sizeof(READ_CAPACITY_DATA_EX);
     }
-    UpdateDataBufLen(srbext, ret_size);
+    srbext->SetSrbDataTxLen(ret_size);
     return srb_status;
 }
 UCHAR Scsi_Verify10(PSPC_SRBEXT srbext)
@@ -66,7 +66,6 @@ UCHAR Scsi_ModeSelect10(PSPC_SRBEXT srbext)
 UCHAR Scsi_ModeSense10(PSPC_SRBEXT srbext)
 {
     UCHAR srb_status = SRB_STATUS_ERROR;
-    PCDB cdb = srbext->Cdb;
     PUCHAR buffer = (PUCHAR)srbext->DataBuf;
     PMODE_PARAMETER_HEADER10 header = (PMODE_PARAMETER_HEADER10)buffer;
     ULONG buf_size = srbext->DataBufLen;
@@ -91,18 +90,18 @@ UCHAR Scsi_ModeSense10(PSPC_SRBEXT srbext)
     REVERSE_BYTES_2(&mode_data_size, header->ModeDataLength);
 
     // Todo: reply real mode sense data
-    switch (cdb->MODE_SENSE.PageCode)
+    switch (srbext->Cdb->MODE_SENSE.PageCode)
     {
         case MODE_PAGE_CACHING:
         {
-            ReplyModePageCaching(buffer, buf_size, page_size, ret_size);
+            ReplyModePageCaching(srbext->DevExt, buffer, buf_size, page_size, ret_size);
             mode_data_size += page_size;
             srb_status = SRB_STATUS_SUCCESS;
             break;
         }
         case MODE_PAGE_CONTROL:
         {
-            ReplyModePageControl(buffer, buf_size, page_size, ret_size);
+            ReplyModePageControl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
             mode_data_size += page_size;
             srb_status = SRB_STATUS_SUCCESS;
             break;
@@ -112,7 +111,7 @@ UCHAR Scsi_ModeSense10(PSPC_SRBEXT srbext)
             //in HLK, it required "Information Exception Control Page".
             //But it is renamed to MODE_PAGE_FAULT_REPORTING in Windows Storport ....
             //refet to https://www.t10.org/ftp/t10/document.94/94-190r3.pdf
-            ReplyModePageInfoExceptionCtrl(buffer, buf_size, page_size, ret_size);
+            ReplyModePageInfoExceptionCtrl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
             mode_data_size += page_size;
             srb_status = SRB_STATUS_SUCCESS;
             break;
@@ -121,17 +120,17 @@ UCHAR Scsi_ModeSense10(PSPC_SRBEXT srbext)
         {
             if (buf_size > 0)
             {
-                ReplyModePageCaching(buffer, buf_size, page_size, ret_size);
+                ReplyModePageCaching(srbext->DevExt, buffer, buf_size, page_size, ret_size);
                 mode_data_size += page_size;
             }
             if (buf_size > 0)
             {
-                ReplyModePageControl(buffer, buf_size, page_size, ret_size);
+                ReplyModePageControl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
                 mode_data_size += page_size;
             }
             if (buf_size > 0)
             {
-                ReplyModePageInfoExceptionCtrl(buffer, buf_size, page_size, ret_size);
+                ReplyModePageInfoExceptionCtrl(srbext->DevExt, buffer, buf_size, page_size, ret_size);
                 mode_data_size += page_size;
             }
 
@@ -148,7 +147,7 @@ UCHAR Scsi_ModeSense10(PSPC_SRBEXT srbext)
     REVERSE_BYTES_2(header->ModeDataLength, &mode_data_size);
 
 end:
-    UpdateDataBufLen(srbext, ret_size);
+    srbext->SetSrbDataTxLen(ret_size);
     return srb_status;
 }
 UCHAR Scsi_SynchronizeCache10(PSPC_SRBEXT srbext)
