@@ -66,85 +66,55 @@ void ReplyModePageInfoExceptionCtrl(PUCHAR& buffer, ULONG& buf_size, ULONG& mode
     FillModePage_InfoException(&page);
     CopyToCdbBuffer(buffer, buf_size, &page, mode_page_size, ret_size);
 }
-void ParseLbaBlockAndOffset(OUT ULONG64& start_block, OUT ULONG& length, PCDB cdb)
-{
-    length = 0;
-    start_block = 0;
-    switch (cdb->AsByte[0])
-    {
-    case SCSIOP_READ6:
-    case SCSIOP_WRITE6:
-    {
-        start_block = ((ULONG64)cdb->CDB6READWRITE.LogicalBlockMsb1 << 16) |
-            ((ULONG64)cdb->CDB6READWRITE.LogicalBlockMsb0 << 8) |
-            ((ULONG64)cdb->CDB6READWRITE.LogicalBlockLsb);
-        length = cdb->CDB6READWRITE.TransferBlocks ? cdb->CDB6READWRITE.TransferBlocks : 256;
-    }
-    break;
-    case SCSIOP_READ:
-    case SCSIOP_WRITE:
-        REVERSE_BYTES_4(&start_block, &cdb->CDB10.LogicalBlockByte0);
-        REVERSE_BYTES_2(&length, &cdb->CDB10.TransferBlocksMsb);
-        break;
-    case SCSIOP_READ12:
-    case SCSIOP_WRITE12:
-        REVERSE_BYTES_4(&start_block, cdb->CDB12.LogicalBlock);
-        REVERSE_BYTES_4(&length, cdb->CDB12.TransferLength);
-        break;
-    case SCSIOP_READ16:
-    case SCSIOP_WRITE16:
-        REVERSE_BYTES_8(&start_block, cdb->CDB16.LogicalBlock);
-        REVERSE_BYTES_4(&length, cdb->CDB16.TransferLength);
-        break;
-    }
-}
-//UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext, BOOLEAN is_write)
+//void ParseLbaBlockAndOffset(OUT ULONG64& start_block, OUT ULONG& length, PCDB cdb)
 //{
-//    ULONG blocks = 0;
-//    ULONG64 start_block = 0;
-//    NTSTATUS status = STATUS_SUCCESS;
-//
-//    ParseLbaBlockAndOffset(start_block, blocks, srbext->Cdb);
-//    if (is_write)
-//        status = srbext->DevExt->WriteLBA(
-//                    start_block, blocks, srbext->DataBuffer);
-//    else
-//        status = srbext->DevExt->ReadLBA(
-//                    start_block, blocks, srbext->DataBuffer);
-//
-//    if (!NT_SUCCESS(status))
+//    length = 0;
+//    start_block = 0;
+//    switch (cdb->AsByte[0])
 //    {
-//        if(STATUS_PENDING == status)
-//            return SRB_STATUS_PENDING;
-//        else
-//            return SRB_STATUS_INTERNAL_ERROR;
+//    case SCSIOP_READ6:
+//    case SCSIOP_WRITE6:
+//    {
+//        start_block = ((ULONG64)cdb->CDB6READWRITE.LogicalBlockMsb1 << 16) |
+//            ((ULONG64)cdb->CDB6READWRITE.LogicalBlockMsb0 << 8) |
+//            ((ULONG64)cdb->CDB6READWRITE.LogicalBlockLsb);
+//        length = cdb->CDB6READWRITE.TransferBlocks ? cdb->CDB6READWRITE.TransferBlocks : 256;
 //    }
-//    return SRB_STATUS_SUCCESS;
+//    break;
+//    case SCSIOP_READ:
+//    case SCSIOP_WRITE:
+//        REVERSE_BYTES_4(&start_block, &cdb->CDB10.LogicalBlockByte0);
+//        REVERSE_BYTES_2(&length, &cdb->CDB10.TransferBlocksMsb);
+//        break;
+//    case SCSIOP_READ12:
+//    case SCSIOP_WRITE12:
+//        REVERSE_BYTES_4(&start_block, cdb->CDB12.LogicalBlock);
+//        REVERSE_BYTES_4(&length, cdb->CDB12.TransferLength);
+//        break;
+//    case SCSIOP_READ16:
+//    case SCSIOP_WRITE16:
+//        REVERSE_BYTES_8(&start_block, cdb->CDB16.LogicalBlock);
+//        REVERSE_BYTES_4(&length, cdb->CDB16.TransferLength);
+//        break;
+//    }
 //}
 UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext, BOOLEAN is_write)
 {
-    ULONG blocks = 0;
-    ULONG64 start_block = 0;
-    NTSTATUS status = STATUS_SUCCESS;
-    UCHAR srb_status = SRB_STATUS_SUCCESS;
-    srbext->IsWrite = is_write;
-    ParseLbaBlockAndOffset(start_block, blocks, srbext->Cdb);
-    if (!srbext->IsWrite)
+    PSPC_DEVEXT devext = srbext->DevExt;
+    NTSTATUS status = STATUS_UNSUCCESSFUL;
+    
+    if(!is_write)
     {
-        status = srbext->DevExt->ReadLBA(start_block, blocks, srbext->DataBuffer);
+        //status = devext->ReadLBA(srbext->RwOffset, srbext->RwLength, srbext->DataBuf);
+        status = devext->Read(srbext->RwOffsetBytes, srbext->RwLengthBytes, srbext->DataBuf);
     }
     else
     {
-        status = srbext->DevExt->WriteLBA(start_block, blocks, srbext->DataBuffer);
+        //status = devext->WriteLBA(srbext->RwOffset, srbext->RwLength, srbext->DataBuf);
+        status = devext->Write(srbext->RwOffsetBytes, srbext->RwLengthBytes, srbext->DataBuf);
     }
 
-    if (NT_SUCCESS(status))
-        srb_status = SRB_STATUS_SUCCESS;
-    else
-        srb_status = SRB_STATUS_ERROR;
-
-
-    return srb_status;    
-//    srbext->DevExt->PushIoRequest(srbext);
-//    return SRB_STATUS_PENDING;
+    if (!NT_SUCCESS(status))
+        return SRB_STATUS_ERROR;
+    return SRB_STATUS_SUCCESS;
 }

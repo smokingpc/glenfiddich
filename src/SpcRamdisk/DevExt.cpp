@@ -46,15 +46,15 @@ BOOLEAN _SPC_DEVEXT::IsValidLbaAndLength(ULONG_PTR lba_start, ULONG block_count)
 }
 NTSTATUS _SPC_DEVEXT::ReadLBA(ULONG_PTR start_block, ULONG blocks, PVOID buffer)
 {
-    ULONG_PTR start_offset = start_block * BytesOfBlock;
-    ULONG read_bytes = blocks * BytesOfBlock;
+    ULONG_PTR start_offset = start_block * BlockSizeInBytes;
+    ULONG read_bytes = blocks * BlockSizeInBytes;
 
     return Read(start_offset, read_bytes, buffer);
 }
 NTSTATUS _SPC_DEVEXT::WriteLBA(ULONG_PTR start_block, ULONG blocks, PVOID buffer)
 {
-    ULONG_PTR start_offset = start_block * BytesOfBlock;
-    ULONG write_bytes = blocks * BytesOfBlock;
+    ULONG_PTR start_offset = start_block * BlockSizeInBytes;
+    ULONG write_bytes = blocks * BlockSizeInBytes;
 
     return Write(start_offset, write_bytes, buffer);
 }
@@ -106,11 +106,11 @@ ULONG _SPC_DEVEXT::ProcessIoRequests()
         ParseLbaBlockAndOffset(start_block, blocks, srbext->Cdb);
         if(!srbext->IsWrite)
         {
-            status = ReadLBA(start_block, blocks, srbext->DataBuffer);
+            status = ReadLBA(start_block, blocks, srbext->DataBuf);
         }
         else
         {
-            status = WriteLBA(start_block, blocks, srbext->DataBuffer);
+            status = WriteLBA(start_block, blocks, srbext->DataBuf);
         }
 
         if(NT_SUCCESS(status))
@@ -175,7 +175,7 @@ void _SPC_DEVEXT::StopWorkerThread()
 void _SPC_DEVEXT::SetSize(size_t total_bytes, ULONG bytes_of_block)
 {
     //todo: check "is bytes_of_block == 512 or 4096?"
-    BytesOfBlock = bytes_of_block;
+    BlockSizeInBytes = bytes_of_block;
     //todo: check "is total_bytes align to bytes_of_block?"
     TotalDiskBytes = total_bytes;
     TotalBlocks = total_bytes / bytes_of_block;

@@ -59,7 +59,7 @@ typedef struct _SPC_DEVEXT {
     PUCHAR Disk;
 
     UINT64 TotalDiskBytes;
-    ULONG BytesOfBlock;
+    ULONG BlockSizeInBytes;         //Size of LBA block, in bytes.
     ULONG_PTR TotalBlocks;
     INT64 MaxLBA;
 

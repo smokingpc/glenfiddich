@@ -33,12 +33,12 @@ UCHAR Scsi_ReadCapacity16(PSPC_SRBEXT srbext)
 {
     UCHAR srb_status = SRB_STATUS_SUCCESS;
     ULONG ret_size = sizeof(READ_CAPACITY16_DATA);
-    PREAD_CAPACITY16_DATA readcap = (PREAD_CAPACITY16_DATA)srbext->DataBuffer;
+    PREAD_CAPACITY16_DATA readcap = (PREAD_CAPACITY16_DATA)srbext->DataBuf;
     RtlZeroMemory(readcap, srbext->DataBufLen);
 
     if(srbext->DataBufLen >= sizeof(READ_CAPACITY16_DATA))
     {
-        ULONG block_size = srbext->DevExt->BytesOfBlock;
+        ULONG block_size = srbext->DevExt->BlockSizeInBytes;
         INT64 last_lba = srbext->DevExt->MaxLBA;
 
         REVERSE_BYTES_QUAD(&readcap->LogicalBlockAddress, &last_lba);
@@ -53,7 +53,7 @@ UCHAR Scsi_ReadCapacity16(PSPC_SRBEXT srbext)
         srb_status = SRB_STATUS_DATA_OVERRUN;
     }
 
-    srbext->SetDataTxLen(ret_size);
+    UpdateDataBufLen(srbext, ret_size);
     return srb_status;
 }
 

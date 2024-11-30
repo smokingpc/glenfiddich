@@ -13,20 +13,20 @@ UCHAR Scsi_ReadCapacity10(PSPC_SRBEXT srbext)
 {
     UCHAR srb_status = SRB_STATUS_SUCCESS;
     ULONG ret_size = 0;
-    RtlZeroMemory(srbext->DataBuffer, srbext->DataBufLen);
-    ULONG block_size = srbext->DevExt->BytesOfBlock;
+    RtlZeroMemory(srbext->DataBuf, srbext->DataBufLen);
+    ULONG block_size = srbext->DevExt->BlockSizeInBytes;
     INT64 last_lba = srbext->DevExt->MaxLBA;
 
     if (srbext->DataBufLen >= sizeof(READ_CAPACITY_DATA_EX))
     {
-        PREAD_CAPACITY_DATA_EX readcap = (PREAD_CAPACITY_DATA_EX)srbext->DataBuffer;
+        PREAD_CAPACITY_DATA_EX readcap = (PREAD_CAPACITY_DATA_EX)srbext->DataBuf;
         REVERSE_BYTES_QUAD(&readcap->LogicalBlockAddress.QuadPart, &last_lba);
         REVERSE_BYTES(&readcap->BytesPerBlock, &block_size);
         ret_size = sizeof(READ_CAPACITY_DATA_EX);
     }
     else if (srbext->DataBufLen >= sizeof(READ_CAPACITY_DATA))
     {
-        PREAD_CAPACITY_DATA readcap = (PREAD_CAPACITY_DATA)srbext->DataBuffer;
+        PREAD_CAPACITY_DATA readcap = (PREAD_CAPACITY_DATA)srbext->DataBuf;
 
         if (last_lba > 0xFFFFFFFF)
             last_lba = 0xFFFFFFFF;
@@ -39,7 +39,7 @@ UCHAR Scsi_ReadCapacity10(PSPC_SRBEXT srbext)
         srb_status = SRB_STATUS_DATA_OVERRUN;
         ret_size = sizeof(READ_CAPACITY_DATA_EX);
     }
-    srbext->SetDataTxLen(ret_size);
+    UpdateDataBufLen(srbext, ret_size);
     return srb_status;
 }
 UCHAR Scsi_Verify10(PSPC_SRBEXT srbext)
@@ -67,7 +67,7 @@ UCHAR Scsi_ModeSense10(PSPC_SRBEXT srbext)
 {
     UCHAR srb_status = SRB_STATUS_ERROR;
     PCDB cdb = srbext->Cdb;
-    PUCHAR buffer = (PUCHAR)srbext->DataBuffer;
+    PUCHAR buffer = (PUCHAR)srbext->DataBuf;
     PMODE_PARAMETER_HEADER10 header = (PMODE_PARAMETER_HEADER10)buffer;
     ULONG buf_size = srbext->DataBufLen;
     ULONG ret_size = 0;
@@ -148,7 +148,7 @@ UCHAR Scsi_ModeSense10(PSPC_SRBEXT srbext)
     REVERSE_BYTES_2(header->ModeDataLength, &mode_data_size);
 
 end:
-    srbext->SetDataTxLen(ret_size);
+    UpdateDataBufLen(srbext, ret_size);
     return srb_status;
 }
 UCHAR Scsi_SynchronizeCache10(PSPC_SRBEXT srbext)

@@ -42,7 +42,7 @@ static UCHAR Reply_VpdSupportedPages(PSPC_SRBEXT srbext, ULONG& ret_size)
     page->SupportedPageList[4] = VPD_BLOCK_DEVICE_CHARACTERISTICS;
 
     ULONG data_len = min(srbext->DataBufLen, buf_size);
-    StorPortCopyMemory(srbext->DataBuffer, page, data_len);
+    StorPortCopyMemory(srbext->DataBuf, page, data_len);
     ret_size = data_len;
     StorPortFreePool(srbext->DevExt, page);
     return SRB_STATUS_SUCCESS;
@@ -51,7 +51,7 @@ static UCHAR Reply_VpdSupportedPages(PSPC_SRBEXT srbext, ULONG& ret_size)
 static UCHAR Reply_VpdSerialNumber(PSPC_SRBEXT srbext, ULONG& ret_size)
 {
     PSPC_DEVEXT devext = srbext->DevExt;
-    PUCHAR buffer = (PUCHAR)srbext->DataBuffer;
+    PUCHAR buffer = (PUCHAR)srbext->DataBuf;
     ULONG buf_size = srbext->DataBufLen;
     size_t size = devext->SnStrLen;
     ret_size = (ULONG)(size + sizeof(VPD_SERIAL_NUMBER_PAGE) + 1);
@@ -108,7 +108,7 @@ static UCHAR Reply_VpdDeviceIdentifier(PSPC_SRBEXT srbext, ULONG& ret_size)
     StorPortCopyMemory(&desc->Identifier[vid_size+1], devext->SN, sn_size);
 
     ULONG data_len = min(srbext->DataBufLen, buf_size);
-    StorPortCopyMemory(srbext->DataBuffer, page, data_len);
+    StorPortCopyMemory(srbext->DataBuf, page, data_len);
     StorPortFreePool(srbext->DevExt, page);
     ret_size = data_len;
 
@@ -146,7 +146,7 @@ static UCHAR Reply_VpdBlockLimits(PSPC_SRBEXT srbext, ULONG& ret_size)
     REVERSE_BYTES_2(page->OptimalTransferLengthGranularity, &granularity);
 
     ULONG data_size = min(srbext->DataBufLen, buf_size);
-    StorPortCopyMemory(srbext->DataBuffer, page, data_size);
+    StorPortCopyMemory(srbext->DataBuf, page, data_size);
     ret_size = data_size;
     StorPortFreePool(srbext->DevExt, page);
 
@@ -173,7 +173,7 @@ static UCHAR Reply_VpdBlockDeviceCharacteristics(PSPC_SRBEXT srbext, ULONG& ret_
     page->NominalFormFactor = 0;
 
     ULONG data_size = min(srbext->DataBufLen, buf_size);
-    StorPortCopyMemory(srbext->DataBuffer, page, data_size);
+    StorPortCopyMemory(srbext->DataBuf, page, data_size);
     ret_size = data_size;
     StorPortFreePool(srbext->DevExt, page);
 
@@ -278,8 +278,8 @@ UCHAR Scsi_RequestSense6(PSPC_SRBEXT srbext)
     if (copy_size > alloc_size)
         copy_size = alloc_size;
 
-    StorPortCopyMemory(srbext->DataBuffer, &data, copy_size);
-    srbext->SetDataTxLen(copy_size);
+    StorPortCopyMemory(srbext->DataBuf, &data, copy_size);
+    UpdateDataBufLen(srbext, copy_size);
     return srb_status;
 }
 UCHAR Scsi_Read6(PSPC_SRBEXT srbext)
@@ -308,13 +308,13 @@ UCHAR Scsi_Inquiry6(PSPC_SRBEXT srbext)
         }
         else
         {
-            PINQUIRYDATA data = (PINQUIRYDATA)srbext->DataBuffer;
+            PINQUIRYDATA data = (PINQUIRYDATA)srbext->DataBuf;
             ULONG size = srbext->DataBufLen;
             ret_size = INQUIRYDATABUFFERSIZE;
             srb_status = SRB_STATUS_DATA_OVERRUN;
             if(size >= INQUIRYDATABUFFERSIZE)
             {
-                RtlZeroMemory(srbext->DataBuffer, srbext->DataBufLen);
+                RtlZeroMemory(srbext->DataBuf, srbext->DataBufLen);
                 Fill_InquiryData(data, (char*)VENDOR_ID, 
                                 (char*)PRODUCT_ID, REV_ID);
                 srb_status = SRB_STATUS_SUCCESS;
@@ -322,7 +322,7 @@ UCHAR Scsi_Inquiry6(PSPC_SRBEXT srbext)
         }
     }
     
-    srbext->SetDataTxLen(ret_size);
+    UpdateDataBufLen(srbext, ret_size);
     return srb_status;
 }
 UCHAR Scsi_Verify6(PSPC_SRBEXT srbext)
@@ -342,7 +342,7 @@ UCHAR Scsi_ModeSense6(PSPC_SRBEXT srbext)
 {
     UCHAR srb_status = SRB_STATUS_ERROR;
     PCDB cdb = srbext->Cdb;
-    PUCHAR buffer = (PUCHAR) srbext->DataBuffer;
+    PUCHAR buffer = (PUCHAR) srbext->DataBuf;
     PMODE_PARAMETER_HEADER header = (PMODE_PARAMETER_HEADER)buffer;
     ULONG buf_size = srbext->DataBufLen;
     ULONG ret_size = 0;
@@ -419,6 +419,6 @@ UCHAR Scsi_ModeSense6(PSPC_SRBEXT srbext)
     }
 
 end:
-    srbext->SetDataTxLen(ret_size);
+    UpdateDataBufLen(srbext, ret_size);
     return srb_status;
 }

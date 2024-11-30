@@ -35,18 +35,24 @@
 // ================================================================
 
 
-#define DBG_FILTER      0x00000080
-#define KiloBytes       1024
-#define MegaBytes       1048576     //1024*1024
-#define GigaBytes       1073741824  //1024*1024*1024
-#define MAX_TX_PAGES    (256)
-#define MAX_TX_SIZE     (MAX_TX_PAGES * PAGE_SIZE)
-#define MAX_IO_PER_LUN  1024
-#define SUPPORTED_LU    1
-#define MAX_TOTAL_IO    (MAX_IO_PER_LUN*SUPPORTED_LU)
-#define PAUSE_ADAPTER_TIMEOUT   5//in seconds
-#define STALL_TIMEOUT   500     //in micro-second
+#define DBG_FILTER          0x00000080
+#define KiloBytes           (1<<10)
+#define MegaBytes           (1<<20)     //1024*1024
+#define GigaBytes           (1<<30)     //1024*1024*1024
+#define MAX_TX_PAGES        (256)
+#define MAX_TX_SIZE         (MAX_TX_PAGES * PAGE_SIZE)
+#define MAX_IO_PER_LUN      1024
+#define SUPPORTED_LU        1
+#define MAX_TOTAL_IO        (MAX_IO_PER_LUN*SUPPORTED_LU)
+#define STALL_TIMEOUT       500     //in micro-second
 #define MIN_CONCURRENT_IO   8
+#define PAUSE_ADAPTER_TIMEOUT   5//in seconds
+
+#define INVALID_RAIDPORT    (MAXUSHORT)
+#define INVALID_BUS_ID      (MAXUCHAR)
+#define INVALID_TARGET_ID   (MAXUCHAR)
+#define INVALID_LUN_ID      (MAXUCHAR)
+#define INVALID_SCSI_TAG    (MAXULONG)
 
 #define DEFAULT_BLOCK_SIZE    4096
 #define DEFAULT_BLOCK_SIZE2   512
@@ -60,3 +66,5 @@
 #define NQN_BUF_SIZE        224
 #define NQN_FORMAT          "nqn.2014-08.smokingpc:spc.ramdisk_%s"
 #define DISK_SN             (LONGLONG)1645017030  //epoc timestamp (2022/02/16 21:10:30)
+
+#define OVERRUN_TAG         (0x23939889)

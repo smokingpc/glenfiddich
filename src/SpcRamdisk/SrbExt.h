@@ -35,30 +35,42 @@
 // ================================================================
 
 //SRB Extension for Ramdisk, this is "per STORPORT REQUEST" context
-typedef struct _SPC_SRBEXT {
+typedef struct _SPC_SRBEXT
+{
     SLIST_ENTRY List;
     PSPC_DEVEXT DevExt;
-    PSTORAGE_REQUEST_BLOCK  Srb;
+    PSCSI_REQUEST_BLOCK  Srb;
+    UCHAR SrbStatus;
 
-    //For easier debugging. should replaced by inline.
     ULONG FuncCode;
-    ULONG TargetID;
-    ULONG Lun;
     ULONG ScsiTag;
     UCHAR CdbLen;
     PCDB Cdb;
-    PSRBEX_DATA_PNP PnpData;
-    PVOID DataBuffer;
-    ULONG DataBufLen;
-    bool IsWrite;
+    USHORT RaidPort;//Storport RAID Port of this adapter. You can see it in windbg !storadapter detail.
+    UCHAR Bus;      //"Bus" of Storport BTL8 address
+    UCHAR Target;   //"Target" of Storport BTL8 address
+    UCHAR Lun;      //"Lun" of Storport BTL8 address
 
-    void SetScsiStateBySrbStatus(UCHAR &srb_status);
-    void CompleteSrb(UCHAR srb_status);
-    inline void SetDataTxLen(ULONG len)
-    {
-        if (NULL != Srb)
-            SrbSetDataTransferLength(Srb, len);
-    }
+    ULONG64 RwOffset;       //read/write offset in LBA blocks, not bytes.(0 if it's not read/write request)
+    ULONG RwLength;         //read/write in LBA blocks, not bytes.(0 if it's not read/write request)
+    ULONG64 RwOffsetBytes;  //read/write offset in bytes.(0 if it's not read/write request)
+    ULONG RwLengthBytes;    //read/write in bytes.(0 if it's not read/write request)
+
+    PVOID DataBuf;
+    ULONG DataBufLen;
+    BOOLEAN IsScsiWrite;
+    ULONG Protect;
 }SPC_SRBEXT, * PSPC_SRBEXT;
 
-PSPC_SRBEXT GetSrbExt(PSTORAGE_REQUEST_BLOCK srb, PVOID devext);
+PSPC_SRBEXT GetSrbExt(_In_ PSCSI_REQUEST_BLOCK srb, _In_ PVOID devext);
+void CompleteSrb(_In_ PSPC_SRBEXT srbext, _In_ UCHAR srb_status);
+
+//If the request need reply data or required buffer length,
+//storport driver should update DataBuffer Length by SrbSetDataTransferLength().
+//Storport will copy back data by this length, like BUFERRED_IO of IOCTL.
+void UpdateDataBufLen(_In_ PSPC_SRBEXT srbext, _In_ ULONG len);
+
+bool GetSrbPnpRequest(
+    _In_ PSPC_SRBEXT srbext, 
+    _Inout_ ULONG& flags, 
+    _Inout_ STOR_PNP_ACTION& action);

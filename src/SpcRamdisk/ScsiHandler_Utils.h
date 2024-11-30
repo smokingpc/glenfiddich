@@ -60,8 +60,8 @@ void ReplyModePageInfoExceptionCtrl(
     ULONG& buf_size, 
     ULONG& mode_page_size, 
     ULONG& ret_size);
-void ParseLbaBlockAndOffset(
-    OUT ULONG64& start_block,
-    OUT ULONG& length, 
-    PCDB cdb);
+//void ParseLbaBlockAndOffset(
+//    OUT ULONG64& start_block,
+//    OUT ULONG& length, 
+//    PCDB cdb);
 UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext, BOOLEAN is_write);

@@ -24,7 +24,7 @@ static UCHAR HandleQueryCapability(PSPC_SRBEXT srbext)
 {
     //query LUN capability for OS(disk management system), not for SCSI subsystem.
     ULONG data_len = srbext->DataBufLen;
-    PUCHAR data_buf = (PUCHAR)srbext->DataBuffer;
+    PUCHAR data_buf = (PUCHAR)srbext->DataBuf;
 
     if (NULL == data_buf)
         return SRB_STATUS_INVALID_REQUEST;
@@ -35,7 +35,7 @@ static UCHAR HandleQueryCapability(PSPC_SRBEXT srbext)
         ReplyQueryCapability(srbext, (PSTOR_DEVICE_CAPABILITIES)data_buf);
     else
     {
-        srbext->SetDataTxLen(sizeof(STOR_DEVICE_CAPABILITIES_EX));
+        UpdateDataBufLen(srbext, sizeof(STOR_DEVICE_CAPABILITIES_EX));
         return SRB_STATUS_DATA_OVERRUN;
     }
 
@@ -55,21 +55,7 @@ UCHAR StartIo_HandlePnpCmd(PSPC_SRBEXT srbext)
 
     ULONG flag = 0;
     STOR_PNP_ACTION action;
-    PSRBEX_DATA_PNP pnp_ex = NULL;
-    PSTORAGE_REQUEST_BLOCK srb = srbext->Srb;
-    pnp_ex = srbext->PnpData;
-    
-    if (pnp_ex != NULL)
-    {
-        flag = pnp_ex->SrbPnPFlags;
-        action = pnp_ex->PnPAction;
-    }
-    else
-    {
-        PSCSI_PNP_REQUEST_BLOCK srb_pnp = (PSCSI_PNP_REQUEST_BLOCK)srb;
-        flag = srb_pnp->SrbPnPFlags;
-        action = srb_pnp->PnPAction;
-    }
+    GetSrbPnpRequest(srbext, flag, action);
 
     switch (action)
     {

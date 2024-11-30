@@ -115,7 +115,7 @@ BOOLEAN HwStartIo(
 )
 {
     CDebugCallInOut inout(__FUNCTION__);
-    PSPC_SRBEXT srbext = GetSrbExt((PSTORAGE_REQUEST_BLOCK)srb, DeviceExtension);
+    PSPC_SRBEXT srbext = GetSrbExt(srb, DeviceExtension);
     UCHAR srb_status = 0;
 
     DebugSrbFunctionCode(srbext->FuncCode);
@@ -161,7 +161,7 @@ BOOLEAN HwStartIo(
     }
 
     if(SRB_STATUS_PENDING != srb_status)
-        srbext->CompleteSrb(srb_status);
+        CompleteSrb(srbext, srb_status);
     return TRUE;
 }
 
