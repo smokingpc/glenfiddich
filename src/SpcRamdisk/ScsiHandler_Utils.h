@@ -63,4 +63,4 @@ void ReplyModePageInfoExceptionCtrl(
     ULONG& buf_size, 
     ULONG& mode_page_size, 
     ULONG& ret_size);
-UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext, BOOLEAN is_write);
+UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext);

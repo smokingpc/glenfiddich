@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.33920.266
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpcRamdisk", "SpcRamdisk\SpcRamdisk.vcxproj", "{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}"
 EndProject
@@ -25,7 +25,6 @@ Global
 		{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}.Debug|ARM64.Deploy.0 = Debug|ARM64
 		{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}.Debug|x64.ActiveCfg = Debug|x64
 		{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}.Debug|x64.Build.0 = Debug|x64
-		{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}.Debug|x64.Deploy.0 = Debug|x64
 		{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}.Debug|x86.ActiveCfg = Debug|Win32
 		{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}.Debug|x86.Build.0 = Debug|Win32
 		{E003A52A-B2D1-47CB-A659-90FEAE5A1E32}.Debug|x86.Deploy.0 = Debug|Win32

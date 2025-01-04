@@ -114,6 +114,7 @@
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <OutDir>$(SolutionDir)..\output\$(Platform)\$(ConfigurationName)\</OutDir>
     <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
+    <TargetName>$(TargetName.Replace(' ',''))</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -125,6 +126,8 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <OutDir>$(SolutionDir)..\output\$(Platform)\$(ConfigurationName)\</OutDir>
+    <TargetName>$(TargetName.Replace(' ',''))</TargetName>
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -135,16 +138,22 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <OutDir>$(SolutionDir)..\output\$(Platform)\$(ConfigurationName)\</OutDir>
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
+    <TargetName>$(TargetName.Replace(' ',''))</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <OutDir>$(SolutionDir)..\output\$(Platform)\$(ConfigurationName)\</OutDir>
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
+    <TargetName>$(TargetName.Replace(' ',''))</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <OutDir>$(SolutionDir)..\output\$(Platform)\$(ConfigurationName)\</OutDir>
+    <TargetName>$(TargetName.Replace(' ',''))</TargetName>
+    <IntDir>$(Platform)\$(ConfigurationName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>

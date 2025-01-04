@@ -5,7 +5,7 @@ static __inline bool IsStorageRequestBlock(
 {
     return (SRB_FUNCTION_STORAGE_REQUEST_BLOCK == srb->Function);
 }
-#if 0
+
 static __inline bool IsScsiWrite(UCHAR opcode)
 {
      return (SCSIOP_WRITE6 == opcode) ||
@@ -13,26 +13,6 @@ static __inline bool IsScsiWrite(UCHAR opcode)
          (SCSIOP_WRITE12 == opcode)||
          (SCSIOP_WRITE16 == opcode);
 }
-
-static __inline bool IsScsiReadWrite(UCHAR opcode)
-{
-    switch (opcode)
-    {
-    case SCSIOP_READ6:
-    case SCSIOP_READ:
-    case SCSIOP_READ12:
-    case SCSIOP_READ16:
-    case SCSIOP_WRITE6:
-    case SCSIOP_WRITE:
-    case SCSIOP_WRITE12:
-    case SCSIOP_WRITE16:
-        return TRUE;
-    }
-
-    return FALSE;
-}
-#endif
-
 static void ParseStorportAddr(_In_ PSPC_SRBEXT srbext)
 {
     PSCSI_REQUEST_BLOCK srb = srbext->Srb;
@@ -157,6 +137,8 @@ static void ParseScsiInfoFromSrb(_In_ PSPC_SRBEXT srbext)
     srbext->ScsiTag = SrbGetQueueTag(srb);
 
     ParseScsiReadWriteLBA(srbext);
+    srbext->IsScsiWrite = IsScsiWrite(srbext->Cdb->CDB6GENERIC.OperationCode);
+    srbext->IsScsiSrb = !IsStorageRequestBlock(srb);
 }
 
 void _SPC_SRBEXT::Init(
@@ -164,7 +146,7 @@ void _SPC_SRBEXT::Init(
     _In_ PVOID devext)
 {
     RtlZeroMemory(this, sizeof(SPC_SRBEXT));
-    this->Protect = OVERRUN_TAG;
+    this->OverrunProtect = OVERRUN_TAG;
     this->Srb = srb;
     this->DevExt = (PSPC_DEVEXT)devext;
     this->Bus = INVALID_BUS_ID;
@@ -180,6 +162,7 @@ void _SPC_SRBEXT::Init(
 }
 void _SPC_SRBEXT::CompleteSrb(_In_ UCHAR srb_status)
 {
+    this->SrbStatus = srb_status;
     if (nullptr != this->Srb)
     {
         UpdateScsiStateToSrb(this, srb_status);

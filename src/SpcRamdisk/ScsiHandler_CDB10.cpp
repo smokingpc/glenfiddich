@@ -1,5 +1,6 @@
 #include "precompile.h"
 
+#if 0
 UCHAR Scsi_Read10(PSPC_SRBEXT srbext)
 {
     return ReadWriteRamdisk(srbext, FALSE);
@@ -8,6 +9,7 @@ UCHAR Scsi_Write10(PSPC_SRBEXT srbext)
 {
     return ReadWriteRamdisk(srbext, TRUE);
 }
+#endif
 
 UCHAR Scsi_ReadCapacity10(PSPC_SRBEXT srbext)
 {

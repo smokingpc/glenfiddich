@@ -144,12 +144,12 @@ UCHAR StartIo_HandleScsiCmd(PSPC_SRBEXT srbext)
         break;
     case SCSIOP_READ6:
         //case SCSIOP_RECEIVE:
-        srb_status = Scsi_Read6(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_WRITE6:
         //case SCSIOP_PRINT:
         //case SCSIOP_SEND:
-        srb_status = Scsi_Write6(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_INQUIRY:
         srb_status = Scsi_Inquiry6(srbext);
@@ -223,10 +223,10 @@ UCHAR StartIo_HandleScsiCmd(PSPC_SRBEXT srbext)
         srb_status = Scsi_ReadCapacity10(srbext);
         break;
     case SCSIOP_READ:
-        srb_status = Scsi_Read10(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_WRITE:
-        srb_status = Scsi_Write10(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_VERIFY:
         srb_status = Scsi_Verify10(srbext);
@@ -290,10 +290,10 @@ UCHAR StartIo_HandleScsiCmd(PSPC_SRBEXT srbext)
         break;
     case SCSIOP_READ12:
         //case SCSIOP_GET_MESSAGE:
-        srb_status = Scsi_Read12(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_WRITE12:
-        srb_status = Scsi_Write12(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_VERIFY12:
         srb_status = Scsi_Verify12(srbext);
@@ -332,10 +332,10 @@ UCHAR StartIo_HandleScsiCmd(PSPC_SRBEXT srbext)
 #endif
 
     case SCSIOP_READ16:
-        srb_status = Scsi_Read16(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_WRITE16:
-        srb_status = Scsi_Write16(srbext);
+        srb_status = ReadWriteRamdisk(srbext);
         break;
     case SCSIOP_VERIFY16:
         srb_status = Scsi_Verify16(srbext);

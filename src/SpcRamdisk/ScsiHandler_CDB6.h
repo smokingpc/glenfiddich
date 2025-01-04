@@ -34,9 +34,12 @@
 // Enjoy it.
 // ================================================================
 
-UCHAR Scsi_RequestSense6(PSPC_SRBEXT srbext);
+#if 0
 UCHAR Scsi_Read6(PSPC_SRBEXT srbext);
 UCHAR Scsi_Write6(PSPC_SRBEXT srbext);
+#endif
+
+UCHAR Scsi_RequestSense6(PSPC_SRBEXT srbext);
 UCHAR Scsi_Inquiry6(PSPC_SRBEXT srbext);
 UCHAR Scsi_Verify6(PSPC_SRBEXT srbext);
 UCHAR Scsi_ModeSelect6(PSPC_SRBEXT srbext);

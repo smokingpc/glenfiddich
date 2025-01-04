@@ -85,21 +85,21 @@ void ReplyModePageInfoExceptionCtrl(
     CopyToCdbBuffer(buffer, buf_size, &page, mode_page_size, ret_size);
 }
 
-UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext, BOOLEAN is_write)
+UCHAR ReadWriteRamdisk(PSPC_SRBEXT srbext)
 {
     PSPC_DEVEXT devext = srbext->DevExt;
     NTSTATUS status = STATUS_UNSUCCESSFUL;
-    
-    if(!is_write)
+    if(!srbext->IsScsiWrite)
     {
-        //status = devext->ReadLBA(srbext->RwOffset, srbext->RwLength, srbext->DataBuf);
-        status = devext->Read(srbext->RwOffsetBytes, srbext->RwLengthBytes, srbext->DataBuf);
+        status = devext->Read(srbext->RwOffsetBytes, 
+                                srbext->RwLengthBytes, 
+                                srbext->DataBuf);
     }
     else
     {
-        //status = devext->WriteLBA(srbext->RwOffset, srbext->RwLength, srbext->DataBuf);
-        status = devext->Write(srbext->RwOffsetBytes, srbext->RwLengthBytes, srbext->DataBuf);
-        //keep
+        status = devext->Write(srbext->RwOffsetBytes, 
+                                srbext->RwLengthBytes, 
+                                srbext->DataBuf);
     }
 
     if (!NT_SUCCESS(status))

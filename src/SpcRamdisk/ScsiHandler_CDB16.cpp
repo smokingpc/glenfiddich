@@ -1,5 +1,6 @@
 #include "precompile.h"
 
+#if 0
 UCHAR Scsi_Read16(PSPC_SRBEXT srbext)
 {
     return ReadWriteRamdisk(srbext, FALSE);
@@ -9,6 +10,7 @@ UCHAR Scsi_Write16(PSPC_SRBEXT srbext)
 {
     return ReadWriteRamdisk(srbext, TRUE);
 }
+#endif
 
 UCHAR Scsi_Verify16(PSPC_SRBEXT srbext)
 {
@@ -28,7 +30,6 @@ UCHAR Scsi_Verify16(PSPC_SRBEXT srbext)
     SrbSetDataTransferLength(srbext->Srb, 0);
     return srb_status;
 }
-
 UCHAR Scsi_ReadCapacity16(PSPC_SRBEXT srbext)
 {
     UCHAR srb_status = SRB_STATUS_SUCCESS;
@@ -56,7 +57,6 @@ UCHAR Scsi_ReadCapacity16(PSPC_SRBEXT srbext)
     srbext->SetSrbDataTxLen(ret_size);
     return srb_status;
 }
-
 UCHAR Scsi_SynchronizeCache16(PSPC_SRBEXT srbext)
 {
     UNREFERENCED_PARAMETER(srbext);

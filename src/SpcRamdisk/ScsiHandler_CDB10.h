@@ -34,9 +34,11 @@
 // Enjoy it.
 // ================================================================
 
-
+#if 0
 UCHAR Scsi_Read10(PSPC_SRBEXT srbext);
 UCHAR Scsi_Write10(PSPC_SRBEXT srbext);
+#endif
+
 UCHAR Scsi_ReadCapacity10(PSPC_SRBEXT srbext);
 UCHAR Scsi_Verify10(PSPC_SRBEXT srbext);
 UCHAR Scsi_ModeSelect10(PSPC_SRBEXT srbext);

@@ -34,8 +34,10 @@
 // Enjoy it.
 // ================================================================
 
-
-UCHAR Scsi_ReportLuns12(PSPC_SRBEXT srbext);
+#if 0
 UCHAR Scsi_Read12(PSPC_SRBEXT srbext);
 UCHAR Scsi_Write12(PSPC_SRBEXT srbext);
+#endif
+
+UCHAR Scsi_ReportLuns12(PSPC_SRBEXT srbext);
 UCHAR Scsi_Verify12(PSPC_SRBEXT srbext);

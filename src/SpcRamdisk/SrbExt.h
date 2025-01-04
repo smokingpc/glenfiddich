@@ -37,32 +37,41 @@
 //SRB Extension for Ramdisk, this is "per STORPORT REQUEST" context.
 typedef struct _SPC_SRBEXT
 {
-    SLIST_ENTRY List;
+    //SLIST_ENTRY List;
     PSPC_DEVEXT DevExt;
     PSCSI_REQUEST_BLOCK  Srb;
     UCHAR SrbStatus;
+    
+    //Is Srb field a SCSI_REQUEST_BLOCK? false indicates it is STORAGE_REQUEST_BLOCK.
+    BOOLEAN IsScsiSrb;      
 
+#pragma region ======== Information parsed from SRB ========
     ULONG FuncCode;
-    ULONG ScsiTag;
     UCHAR CdbLen;
     PCDB Cdb;
-    USHORT RaidPort;//Storport RAID Port of this adapter. You can see it in windbg !storadapter detail.
-    UCHAR Bus;      //"Bus" of Storport BTL8 address
-    UCHAR Target;   //"Target" of Storport BTL8 address
-    UCHAR Lun;      //"Lun" of Storport BTL8 address
-
+    PVOID DataBuf;
+    ULONG DataBufLen;       //DataBuf length in bytes
+    USHORT RaidPort;        //Storport RAID Port of this adapter. You can see it in windbg !storadapter detail.
+    UCHAR Bus;              //"Bus" of Storport BTL8 address
+    UCHAR Target;           //"Target" of Storport BTL8 address
+    UCHAR Lun;              //"Lun" of Storport BTL8 address
+    ULONG ScsiTag;          //scsi tag from storport, unique id for each LU
+    BOOLEAN IsScsiWrite;
     ULONG64 RwOffset;       //read/write offset in LBA blocks, not bytes.(0 if it's not read/write request)
     ULONG RwLength;         //read/write in LBA blocks, not bytes.(0 if it's not read/write request)
     ULONG64 RwOffsetBytes;  //read/write offset in bytes.(0 if it's not read/write request)
     ULONG RwLengthBytes;    //read/write in bytes.(0 if it's not read/write request)
+#pragma endregion
 
-    PVOID DataBuf;
-    ULONG DataBufLen;
-    BOOLEAN IsScsiWrite;
-    ULONG Protect;
+    ULONG OverrunProtect;
 
     void Init(_In_ PSCSI_REQUEST_BLOCK srb, _In_ PVOID devext);
     void CompleteSrb(_In_ UCHAR srb_status);
+
+    //SRB Complete operation has a copy back action if original 
+    //IOCTL requester speicfied a out-buffer.
+    //We should tell storport "how many bytes should be copied back".
+    //Call this function to set it.
     void SetSrbDataTxLen(_In_ ULONG len);
     bool GetSrbPnpRequest(
         _Inout_ ULONG& flags,

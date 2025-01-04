@@ -251,6 +251,16 @@ static UCHAR Reply_NonVpdInquiry(PSPC_SRBEXT srbext, ULONG& ret_size)
 
 #pragma endregion
 
+#if 0
+UCHAR Scsi_Read6(PSPC_SRBEXT srbext)
+{
+    return ReadWriteRamdisk(srbext, srbext->IsScsiWrite);
+}
+UCHAR Scsi_Write6(PSPC_SRBEXT srbext)
+{
+    return ReadWriteRamdisk(srbext, TRUE);
+}
+#endif
 UCHAR Scsi_RequestSense6(PSPC_SRBEXT srbext)
 {
     //request sense is used to query error information from device.
@@ -297,14 +307,6 @@ UCHAR Scsi_RequestSense6(PSPC_SRBEXT srbext)
     StorPortCopyMemory(srbext->DataBuf, &data, copy_size);
     srbext->SetSrbDataTxLen(copy_size);
     return srb_status;
-}
-UCHAR Scsi_Read6(PSPC_SRBEXT srbext)
-{
-    return ReadWriteRamdisk(srbext, FALSE);
-}
-UCHAR Scsi_Write6(PSPC_SRBEXT srbext)
-{
-    return ReadWriteRamdisk(srbext, TRUE);
 }
 UCHAR Scsi_Inquiry6(PSPC_SRBEXT srbext) 
 {

@@ -15,7 +15,7 @@ PnpLockDown=1
 ;This template is supported for OS version 17763 (Windows 10 version 1809) and after.
 ;For Windows OS prior to Windows 10 1809 set DefaultDestDir = 12
 [DestinationDirs]
-DefaultDestDir = 13
+DefaultDestDir = 12
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
@@ -28,23 +28,24 @@ SpcRamDisk.sys=1,,
 
 [Standard.NT$ARCH$]
 %DeviceDesc%=DiskInstall, ROOT\SpcRamDisk
-[DiskInstall.NT]
+
+[DiskInstall.NT$ARCH$]
 CopyFiles=DiskCopyfiles
 
 [DiskCopyfiles]
 SpcRamDisk.sys
 
 ;-------------- Service installation
-[DiskInstall.NT.Services]
-AddService = "spcrd",%SPSVCINST_ASSOCSERVICE%,SpcRamDisk.Service
+[DiskInstall.NT$ARCH$.Services]
+AddService = "spcrd",%SPSVCINST_ASSOCSERVICE%,Ramdisk.Service
 
 ; -------------- RamDiskDriver driver install sections
-[SpcRamDisk.Service]
+[Ramdisk.Service]
 DisplayName    = "SmokingPC Ramdisk Service"
 ServiceType    = %SERVICE_KERNEL_DRIVER%
 StartType      = %SERVICE_DEMAND_START%
 ErrorControl   = %SERVICE_ERROR_NORMAL%
-ServiceBinary  = %13%\SpcRamDisk.sys
+ServiceBinary  = %12%\SpcRamDisk.sys
 LoadOrderGroup = "Scsi Miniport"
 AddReg         = SpcRamDisk_Reg
 
