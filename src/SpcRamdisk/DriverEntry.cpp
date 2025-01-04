@@ -34,6 +34,7 @@ ULONG DriverEntry(
     init.HwResetBus = HwResetBus;
     init.HwAdapterControl = HwAdapterControl;
     init.HwUnitControl = HwUnitControl;
+    init.HwInitializeTracing = HwInitializeTracing;
     init.HwTracingEnabled = HwTracingEnabled;
     init.HwCleanupTracing = HwCleanupTracing;
     init.HwFreeAdapterResources = HwFreeAdapterResources;          //free resources when removing device

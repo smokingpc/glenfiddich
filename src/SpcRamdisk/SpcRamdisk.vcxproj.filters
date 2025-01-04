@@ -29,6 +29,9 @@
     <Filter Include="DevExt_and_SrbExt">
       <UniqueIdentifier>{4fcca448-7547-4bbe-922a-2a0011013145}</UniqueIdentifier>
     </Filter>
+    <Filter Include="EventLog">
+      <UniqueIdentifier>{edbb8b33-067b-457a-973d-b04dee945770}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="SpcRamdisk.inf">
@@ -80,6 +83,9 @@
     </ClCompile>
     <ClCompile Include="SrbExt.cpp">
       <Filter>DevExt_and_SrbExt</Filter>
+    </ClCompile>
+    <ClCompile Include="EventTracingLog.cpp">
+      <Filter>EventLog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +139,12 @@
     </ClInclude>
     <ClInclude Include="AdapterControl_Handlers.h">
       <Filter>MiniportFunction</Filter>
+    </ClInclude>
+    <ClInclude Include="EventTracingLog.h">
+      <Filter>EventLog</Filter>
+    </ClInclude>
+    <ClInclude Include="Enumeration.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

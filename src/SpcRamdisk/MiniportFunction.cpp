@@ -337,22 +337,26 @@ SCSI_UNIT_CONTROL_STATUS HwUnitControl(
 }
 
 _Use_decl_annotations_
+VOID HwInitializeTracing(
+    _In_ PVOID DriverObject,
+    _In_ PVOID RegistryPath)
+{
+    SetupETW((PDRIVER_OBJECT)DriverObject, (PUNICODE_STRING)RegistryPath);
+}
+
+_Use_decl_annotations_
 VOID HwTracingEnabled(
     _In_ PVOID HwDeviceExtension,
     _In_ BOOLEAN Enabled
 )
 {
-    UNREFERENCED_PARAMETER(HwDeviceExtension);
-    UNREFERENCED_PARAMETER(Enabled);
-
-    //miniport should write its own ETW log via StorPortEtwEventXXX API (refer to storport.h)
-    // So HwTracingEnabled and HwCleanupTracing are used to "turn on" and "turn off" its own ETW logging mechanism.
+    EnableETW((PSPC_DEVEXT)HwDeviceExtension, Enabled);
 }
 
 _Use_decl_annotations_
 VOID HwCleanupTracing(
-    _In_ PVOID  Arg1
+    _In_ PVOID  DriverObject
 )
 {
-    UNREFERENCED_PARAMETER(Arg1);
+    TeardownETW((PDRIVER_OBJECT)DriverObject);
 }

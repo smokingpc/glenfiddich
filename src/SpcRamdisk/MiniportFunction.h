@@ -45,6 +45,7 @@ HW_FREE_ADAPTER_RESOURCES HwFreeAdapterResources;
 HW_PROCESS_SERVICE_REQUEST HwProcessServiceRequest;
 HW_COMPLETE_SERVICE_IRP HwCompleteServiceIrp;
 HW_UNIT_CONTROL HwUnitControl;
+HW_INITIALIZE_TRACING HwInitializeTracing;
 HW_TRACING_ENABLED HwTracingEnabled;
 HW_CLEANUP_TRACING HwCleanupTracing;
 

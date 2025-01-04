@@ -46,12 +46,14 @@ EXTERN_C_END
 #include <ntstrsafe.h>
 #include "PoolTag.h"
 #include "Constants.h"
+#include "Enumeration.h"
 #include "AutoPointer.hpp"
 #include "DebugUtils.h"
 #include "CppSupport.h"
 
 #include "DevExt.h"
 #include "SrbExt.h"
+#include "EventTracingLog.h"
 #include "MiniportFunction.h"
 #include "AdapterControl_Handlers.h"
 #include "UnitControl_Handlers.h"

@@ -67,6 +67,7 @@ typedef struct _SPC_DEVEXT {
     INT64 MaxLBA;                   
     BOOLEAN ReadCacheEnabled;
     BOOLEAN WriteCacheEnabled;
+    BOOLEAN EtwEnabled;
 
     void Setup();
     void Teardown();

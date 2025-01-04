@@ -225,6 +225,7 @@
     <ClCompile Include="DebugUtils.cpp" />
     <ClCompile Include="DevExt.cpp" />
     <ClCompile Include="DriverEntry.cpp" />
+    <ClCompile Include="EventTracingLog.cpp" />
     <ClCompile Include="MiniportFunction.cpp" />
     <ClCompile Include="ScsiHandler_CDB10.cpp" />
     <ClCompile Include="ScsiHandler_CDB12.cpp" />
@@ -242,6 +243,8 @@
     <ClInclude Include="CppSupport.h" />
     <ClInclude Include="DebugUtils.h" />
     <ClInclude Include="DevExt.h" />
+    <ClInclude Include="Enumeration.h" />
+    <ClInclude Include="EventTracingLog.h" />
     <ClInclude Include="MiniportFunction.h" />
     <ClInclude Include="PoolTag.h" />
     <ClInclude Include="precompile.h" />
