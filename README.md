@@ -1,4 +1,4 @@
-# Glenffidich
+# Glenfiddich
 Ramdisk for Windows<BR>
 <HR>
 [Development Environment]
@@ -6,7 +6,7 @@ Visual Studio 2019<BR>
 Windows SDK 10.0.20348<BR>
 WDK 10.0.20348<BR>
 <BR>
-Glenffidich is a Windows Storport Virtual Miniport Driver.<BR>
+Glenfiddich is a Windows Storport Virtual Miniport Driver.<BR>
 It only support Win8+ versions.(including Win Server 2016+)<BR>
 This driver is my early practice for virtual miniport driver.<BR>
 I use this driver to trace virtual miniport callbacks and SCSI behavior in windows.<BR>
